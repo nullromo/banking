@@ -1,26 +1,128 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { CategoriesTable } from './categoriesTable';
+import { StatementUploader } from './statementUploader';
+import { TransactionHistory } from './transactionHistory';
+import { Statement, TaggedTransaction } from './types';
+import { UploadedStatement } from './uploadedStatement';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const tempCategories = ['food', 'clothing', 'travel'];
+
+const tempCache = {
+    safeway: 'food',
+    "trader joe's": 'food',
+    eshakti: 'clothing',
+};
+
+interface AppProps {}
+
+interface AppState {
+    cache: Partial<Record<string, string>>;
+    categories: string[];
+    transactionHistory: TaggedTransaction[];
+    uploadedStatements: Statement[];
+}
+
+class App extends React.Component<AppProps, AppState> {
+    public constructor(props: AppProps) {
+        super(props);
+        this.state = {
+            categories: [],
+            cache: {},
+            transactionHistory: [],
+            uploadedStatements: [],
+        };
+    }
+
+    public readonly componentDidMount = () => {
+        // server call for getting stuff
+        this.setState({
+            categories: tempCategories,
+            cache: tempCache,
+        });
+    };
+
+    public readonly render = () => {
+        return (
+            <>
+                <CategoriesTable
+                    addCategory={(newCategory) => {
+                        this.setState((previousState) => {
+                            return {
+                                categories: [
+                                    ...previousState.categories,
+                                    newCategory,
+                                ],
+                            };
+                        });
+                    }}
+                    categories={this.state.categories}
+                />
+                <br />
+                <br />
+                <br />
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cache</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(this.state.cache).map(
+                                ([description, category]) => {
+                                    return (
+                                        <tr key={description}>
+                                            <td>{description}</td>
+                                            <td>{category}</td>
+                                        </tr>
+                                    );
+                                },
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                <br />
+                <br />
+                <br />
+                <TransactionHistory
+                    transactionHistory={this.state.transactionHistory}
+                />
+                <br />
+                <br />
+                <br />
+                <StatementUploader
+                    onUpload={(uploadedStatements) => {
+                        this.setState({ uploadedStatements });
+                    }}
+                />
+                <br />
+                <br />
+                <br />
+                {this.state.uploadedStatements.map((statement) => {
+                    return (
+                        <UploadedStatement
+                            key={statement.statementDate.toString()}
+                            cache={this.state.cache}
+                            categories={this.state.categories}
+                            statement={statement}
+                            submitTransactions={(transactions) => {
+                                console.log(transactions);
+                                this.setState((previousState) => {
+                                    return {
+                                        transactionHistory: [
+                                            ...previousState.transactionHistory,
+                                            ...transactions,
+                                        ],
+                                        uploadedStatements: [],
+                                    };
+                                });
+                            }}
+                        />
+                    );
+                })}
+            </>
+        );
+    };
 }
 
 export default App;
