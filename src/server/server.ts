@@ -10,6 +10,6 @@ server.use((request, response, next) => {
     next();
 });
 
-server.listen(port, 'http://localhost', () => {
+server.listen(port, () => {
     console.log(`Listening on port ${port}.`);
 });
