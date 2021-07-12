@@ -9,6 +9,7 @@ interface UploadedStatementProps {
 }
 
 interface UploadedStatementState {
+    notes: string[];
     selectedCategories: Array<string | undefined>;
 }
 
@@ -19,6 +20,9 @@ export class UploadedStatement extends React.Component<
     public constructor(props: UploadedStatementProps) {
         super(props);
         this.state = {
+            notes: props.statement.transactions.map(() => {
+                return '';
+            }),
             selectedCategories: props.statement.transactions.map(
                 (transaction) => {
                     return (
@@ -48,7 +52,7 @@ export class UploadedStatement extends React.Component<
                 <table>
                     <thead>
                         <tr>
-                            <th colSpan={4}>
+                            <th colSpan={5}>
                                 Statement{' '}
                                 {this.props.statement.statementDate.toString()}
                             </th>
@@ -58,6 +62,7 @@ export class UploadedStatement extends React.Component<
                             <th>Description</th>
                             <th>Amount</th>
                             <th>Category</th>
+                            <th>Notes</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,6 +100,25 @@ export class UploadedStatement extends React.Component<
                                                 {categoryOptions}
                                             </select>
                                         </td>
+                                        <td>
+                                            <input
+                                                type='text'
+                                                value={this.state.notes[i]}
+                                                onChange={(event) => {
+                                                    this.setState(
+                                                        (previousState) => {
+                                                            const notes =
+                                                                previousState.notes;
+                                                            notes[i] =
+                                                                event.target.value;
+                                                            return {
+                                                                notes,
+                                                            };
+                                                        },
+                                                    );
+                                                }}
+                                            />
+                                        </td>
                                     </tr>
                                 );
                             },
@@ -120,6 +144,7 @@ export class UploadedStatement extends React.Component<
                                     return {
                                         ...transaction,
                                         category: selectedCategories[i],
+                                        notes: this.state.notes[i],
                                     };
                                 },
                             ),

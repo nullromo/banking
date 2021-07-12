@@ -2,7 +2,11 @@ import React from 'react';
 import { CategoriesTable } from './categoriesTable';
 import { StatementUploader } from './statementUploader';
 import { TransactionHistory } from './transactionHistory';
-import { Statement, TaggedTransaction } from './types';
+import {
+    Statement,
+    TaggedTransaction,
+    taggedTransactionsAreEqual,
+} from './types';
 import { UploadedStatement } from './uploadedStatement';
 
 const tempCategories = ['food', 'clothing', 'travel'];
@@ -85,6 +89,21 @@ class App extends React.Component<AppProps, AppState> {
                 <br />
                 <br />
                 <TransactionHistory
+                    deleteTransaction={(transaction) => {
+                        this.setState((previousState) => {
+                            return {
+                                transactionHistory:
+                                    previousState.transactionHistory.filter(
+                                        (oldTransaction) => {
+                                            return !taggedTransactionsAreEqual(
+                                                oldTransaction,
+                                                transaction,
+                                            );
+                                        },
+                                    ),
+                            };
+                        });
+                    }}
                     transactionHistory={this.state.transactionHistory}
                 />
                 <br />
@@ -106,14 +125,34 @@ class App extends React.Component<AppProps, AppState> {
                             categories={this.state.categories}
                             statement={statement}
                             submitTransactions={(transactions) => {
-                                console.log(transactions);
                                 this.setState((previousState) => {
+                                    const cache = previousState.cache;
+                                    transactions.forEach((transaction) => {
+                                        cache[transaction.description] =
+                                            transaction.category;
+                                    });
+                                    const transactionHistory = [
+                                        ...previousState.transactionHistory,
+                                        ...transactions.filter(
+                                            (transaction) => {
+                                                return !previousState.transactionHistory.some(
+                                                    (oldTransaction) => {
+                                                        return taggedTransactionsAreEqual(
+                                                            oldTransaction,
+                                                            transaction,
+                                                        );
+                                                    },
+                                                );
+                                            },
+                                        ),
+                                    ];
+                                    transactionHistory.sort((a, b) => {
+                                        return a.date.localeCompare(b.date);
+                                    });
                                     return {
-                                        transactionHistory: [
-                                            ...previousState.transactionHistory,
-                                            ...transactions,
-                                        ],
+                                        transactionHistory,
                                         uploadedStatements: [],
+                                        cache,
                                     };
                                 });
                             }}
