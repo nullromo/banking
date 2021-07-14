@@ -1,5 +1,6 @@
 import React from 'react';
 import { CategoriesTable } from './categoriesTable';
+import { ServerCalls } from './serverCalls';
 import { StatementUploader } from './statementUploader';
 import { TransactionHistory } from './transactionHistory';
 import {
@@ -8,14 +9,6 @@ import {
     taggedTransactionsAreEqual,
 } from './types';
 import { UploadedStatement } from './uploadedStatement';
-
-const tempCategories = ['food', 'clothing', 'travel'];
-
-const tempCache = {
-    safeway: 'food',
-    "trader joe's": 'food',
-    eshakti: 'clothing',
-};
 
 interface AppProps {}
 
@@ -37,12 +30,11 @@ class App extends React.Component<AppProps, AppState> {
         };
     }
 
-    public readonly componentDidMount = () => {
-        // server call for getting stuff
-        this.setState({
-            categories: tempCategories,
-            cache: tempCache,
-        });
+    public readonly componentDidMount = async () => {
+        const transactionHistory = await ServerCalls.loadTransactionHistory();
+        const categories = await ServerCalls.loadCategories();
+        const cache = await ServerCalls.loadCache();
+        this.setState({ categories, cache, transactionHistory });
     };
 
     public readonly render = () => {
@@ -91,17 +83,19 @@ class App extends React.Component<AppProps, AppState> {
                 <TransactionHistory
                     deleteTransaction={(transaction) => {
                         this.setState((previousState) => {
-                            return {
-                                transactionHistory:
-                                    previousState.transactionHistory.filter(
-                                        (oldTransaction) => {
-                                            return !taggedTransactionsAreEqual(
-                                                oldTransaction,
-                                                transaction,
-                                            );
-                                        },
-                                    ),
-                            };
+                            const transactionHistory =
+                                previousState.transactionHistory.filter(
+                                    (oldTransaction) => {
+                                        return !taggedTransactionsAreEqual(
+                                            oldTransaction,
+                                            transaction,
+                                        );
+                                    },
+                                );
+                            ServerCalls.saveTransactionHistory(
+                                transactionHistory,
+                            );
+                            return { transactionHistory };
                         });
                     }}
                     transactionHistory={this.state.transactionHistory}
@@ -149,6 +143,9 @@ class App extends React.Component<AppProps, AppState> {
                                     transactionHistory.sort((a, b) => {
                                         return a.date.localeCompare(b.date);
                                     });
+                                    ServerCalls.saveTransactionHistory(
+                                        transactionHistory,
+                                    );
                                     return {
                                         transactionHistory,
                                         uploadedStatements: [],

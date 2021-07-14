@@ -32,3 +32,12 @@ export const taggedTransactionsAreEqual = (
         a.notes === b.notes
     );
 };
+
+export enum EndpointNames {
+    LOAD_TRANSACTION_HISTORY = '/load-transaction-history',
+    SAVE_TRANSACTION_HISTORY = '/save-transaction-history',
+    LOAD_CATEGORIES = '/load-categories',
+    SAVE_CATEGORIES = '/save-categories',
+    LOAD_CACHE = '/load-cache',
+    SAVE_CACHE = '/save-cache',
+}
