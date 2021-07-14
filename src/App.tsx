@@ -43,12 +43,12 @@ class App extends React.Component<AppProps, AppState> {
                 <CategoriesTable
                     addCategory={(newCategory) => {
                         this.setState((previousState) => {
-                            return {
-                                categories: [
-                                    ...previousState.categories,
-                                    newCategory,
-                                ],
-                            };
+                            const categories = [
+                                ...previousState.categories,
+                                newCategory,
+                            ];
+                            ServerCalls.saveCategories(categories);
+                            return { categories };
                         });
                     }}
                     categories={this.state.categories}
@@ -146,6 +146,7 @@ class App extends React.Component<AppProps, AppState> {
                                     ServerCalls.saveTransactionHistory(
                                         transactionHistory,
                                     );
+                                    ServerCalls.saveCache(cache);
                                     return {
                                         transactionHistory,
                                         uploadedStatements: [],
