@@ -41,4 +41,12 @@ export class ServerCalls {
     static readonly saveCache = (cache: Partial<Record<string, string>>) => {
         return axios.post(EndpointNames.SAVE_CACHE, { cache });
     };
+
+    static readonly parseStatement = (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return axios.post(EndpointNames.PARSE_STATEMENT, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    };
 }

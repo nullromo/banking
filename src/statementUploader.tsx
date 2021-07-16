@@ -1,4 +1,5 @@
 import React from 'react';
+import { ServerCalls } from './serverCalls';
 import { Statement, Transaction } from './types';
 
 interface StatementUploaderProps {
@@ -19,31 +20,11 @@ export class StatementUploader extends React.Component<
     private fileInput = React.createRef<HTMLInputElement>();
 
     private readonly parsePDFStatement = async (file: File) => {
-        return {
-            transactions: [
-                {
-                    date: '2021-06-05',
-                    description: 'safeway',
-                    amount: 120.45,
-                },
-                {
-                    date: '2021-06-11',
-                    description: 'eshakti',
-                    amount: 32.34,
-                },
-                {
-                    date: '2021-06-20',
-                    description: "trader joe's",
-                    amount: 66.78,
-                },
-                {
-                    date: '2021-06-21',
-                    description: 'randomThing',
-                    amount: 0.01,
-                },
-            ] as Transaction[],
-            statementDate: new Date(2021, 6),
-        };
+        try {
+            return (await ServerCalls.parseStatement(file)).data;
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     public readonly render = () => {

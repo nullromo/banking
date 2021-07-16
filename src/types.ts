@@ -40,4 +40,5 @@ export enum EndpointNames {
     SAVE_CATEGORIES = '/save-categories',
     LOAD_CACHE = '/load-cache',
     SAVE_CACHE = '/save-cache',
+    PARSE_STATEMENT = '/parse-statement',
 }
