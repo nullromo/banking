@@ -3,6 +3,7 @@ import fileUpload from 'express-fileupload';
 import fs from 'fs';
 import pdf from 'pdf-parse';
 import { EndpointNames, TaggedTransaction, Transaction } from '../types';
+import { parseBankOfAmericaCreditCardStatement } from './parsers';
 
 const transactionHistoryFilename = './data/transactionHistory.json';
 const categoriesFilename = './data/categories.json';
@@ -64,22 +65,12 @@ server.post(EndpointNames.PARSE_STATEMENT, async (request, response) => {
         }
         const file = request.files.file;
         if (Array.isArray(file)) {
-            throw new Error('Only one file can be uplaoded at a time.');
+            throw new Error('Only one file can be uplaoded per request.');
         }
         const data = await pdf(file.data);
-        console.log('par', data);
-        const transactions: Transaction[] = data.text
-            .split('Purchases and Adjustments')[2]
-            .split('TOTAL PURCHASES AND ADJUSTMENTS FOR THIS PERIOD')[0]
-            .trim()
-            .split('\n')
-            .map((row: string) => {
-                return {
-                    date: row.slice(0, 5),
-                    description: row.slice(10, 35).trim(),
-                    amount: parseFloat(row.slice(row.indexOf('3051') + 4)),
-                };
-            });
+        console.log(data.text);
+        console.log('================================');
+        const transactions = parseBankOfAmericaCreditCardStatement(data.text);
         response
             .status(200)
             .send({ transactions, statementDate: new Date(2021, 6) });
