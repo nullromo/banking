@@ -106,6 +106,32 @@ export class UploadedStatement extends React.Component<
                                                     this.props.removeTransaction(
                                                         i,
                                                     );
+                                                    this.setState(
+                                                        (previousState) => {
+                                                            return {
+                                                                notes: previousState.notes.filter(
+                                                                    (_, j) => {
+                                                                        return (
+                                                                            i !==
+                                                                            j
+                                                                        );
+                                                                    },
+                                                                ),
+                                                                selectedCategories:
+                                                                    previousState.selectedCategories.filter(
+                                                                        (
+                                                                            _,
+                                                                            j,
+                                                                        ) => {
+                                                                            return (
+                                                                                i !==
+                                                                                j
+                                                                            );
+                                                                        },
+                                                                    ),
+                                                            };
+                                                        },
+                                                    );
                                                 }}
                                             >
                                                 ❌
@@ -178,6 +204,18 @@ export class UploadedStatement extends React.Component<
                                                 this.state.customTransaction
                                                     .description,
                                             amount: parseFloat(amount),
+                                        });
+                                        this.setState((previousState) => {
+                                            return {
+                                                notes: [
+                                                    ...previousState.notes,
+                                                    '',
+                                                ],
+                                                selectedCategories: [
+                                                    ...previousState.selectedCategories,
+                                                    undefined,
+                                                ],
+                                            };
                                         });
                                     }}
                                 >
