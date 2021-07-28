@@ -3,6 +3,7 @@ import React from 'react';
 interface CategoriesTableProps {
     addCategory: (newCategory: string) => void;
     categories: string[];
+    removeCategory: (category: string) => void;
 }
 
 interface CategoriesTableState {
@@ -24,29 +25,39 @@ export class CategoriesTable extends React.Component<
             <table>
                 <thead>
                     <tr>
-                        <th>Categories</th>
+                        <th colSpan={2}>Categories</th>
                     </tr>
                 </thead>
                 <tbody>
                     {this.props.categories.map((category) => {
                         return (
                             <tr key={category}>
+                                <td>
+                                    <button
+                                        onClick={() => {
+                                            this.props.removeCategory(category);
+                                        }}
+                                    >
+                                        ❌
+                                    </button>
+                                </td>
                                 <td>{category}</td>
                             </tr>
                         );
                     })}
                     <tr>
-                        <td>
+                        <td colSpan={2}>
                             <input
                                 type='text'
                                 value={this.state.newCategory}
                                 onChange={(event) => {
                                     this.setState({
-                                        errorMessage: this.props.categories.includes(
-                                            event.target.value,
-                                        )
-                                            ? 'Category already exists'
-                                            : '',
+                                        errorMessage:
+                                            this.props.categories.includes(
+                                                event.target.value,
+                                            )
+                                                ? 'Category already exists'
+                                                : '',
                                         newCategory: event.target.value,
                                     });
                                 }}

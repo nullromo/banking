@@ -3,6 +3,7 @@ import { CategoriesTable } from './categoriesTable';
 import { ServerCalls } from './serverCalls';
 import { StatementUploader } from './statementUploader';
 import { TransactionHistory } from './transactionHistory';
+import rfdc from 'rfdc';
 import {
     Statement,
     TaggedTransaction,
@@ -52,6 +53,17 @@ class App extends React.Component<AppProps, AppState> {
                         });
                     }}
                     categories={this.state.categories}
+                    removeCategory={(category) => {
+                        this.setState((previousState) => {
+                            return {
+                                categories: previousState.categories.filter(
+                                    (oldCategory) => {
+                                        return category !== oldCategory;
+                                    },
+                                ),
+                            };
+                        });
+                    }}
                 />
                 <br />
                 <br />
@@ -111,13 +123,36 @@ class App extends React.Component<AppProps, AppState> {
                 <br />
                 <br />
                 <br />
-                {this.state.uploadedStatements.map((statement) => {
+                {this.state.uploadedStatements.map((statement, i) => {
                     return (
                         <UploadedStatement
                             key={statement.statementDate.toString()}
                             cache={this.state.cache}
                             categories={this.state.categories}
                             statement={statement}
+                            addTransaction={(transaction) => {
+                                this.setState((previousState) => {
+                                    const uploadedStatements = rfdc()(
+                                        previousState.uploadedStatements,
+                                    );
+                                    uploadedStatements[i].transactions.push(
+                                        transaction,
+                                    );
+                                    return { uploadedStatements };
+                                });
+                            }}
+                            removeTransaction={(transactionNumber) => {
+                                this.setState((previousState) => {
+                                    const uploadedStatements = rfdc()(
+                                        previousState.uploadedStatements,
+                                    );
+                                    uploadedStatements[i].transactions.splice(
+                                        transactionNumber,
+                                        1,
+                                    );
+                                    return { uploadedStatements };
+                                });
+                            }}
                             submitTransactions={(transactions) => {
                                 this.setState((previousState) => {
                                     const cache = previousState.cache;

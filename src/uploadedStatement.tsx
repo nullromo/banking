@@ -1,14 +1,17 @@
 import React from 'react';
-import { Statement, TaggedTransaction } from './types';
+import { Statement, TaggedTransaction, Transaction } from './types';
 
 interface UploadedStatementProps {
+    addTransaction: (transaction: Transaction) => void;
     cache: Partial<Record<string, string>>;
     categories: string[];
+    removeTransaction: (transactionNumber: number) => void;
     statement: Statement;
     submitTransactions: (transactions: TaggedTransaction[]) => void;
 }
 
 interface UploadedStatementState {
+    customTransaction: Transaction;
     notes: string[];
     selectedCategories: Array<string | undefined>;
 }
@@ -20,6 +23,11 @@ export class UploadedStatement extends React.Component<
     public constructor(props: UploadedStatementProps) {
         super(props);
         this.state = {
+            customTransaction: {
+                amount: 0.0,
+                date: '',
+                description: '',
+            },
             notes: props.statement.transactions.map(() => {
                 return '';
             }),
@@ -47,17 +55,39 @@ export class UploadedStatement extends React.Component<
             </>
         );
 
+        const makeCustomTransactionInput = (attribute: keyof Transaction) => {
+            return (
+                <td>
+                    <input
+                        type='text'
+                        value={this.state.customTransaction[attribute]}
+                        onChange={(event) => {
+                            this.setState((previousState) => {
+                                return {
+                                    customTransaction: {
+                                        ...previousState.customTransaction,
+                                        [attribute]: event.target.value,
+                                    },
+                                };
+                            });
+                        }}
+                    />
+                </td>
+            );
+        };
+
         return (
             <>
                 <table>
                     <thead>
                         <tr>
-                            <th colSpan={5}>
+                            <th colSpan={6}>
                                 Statement{' '}
                                 {this.props.statement.statementDate.toString()}
                             </th>
                         </tr>
                         <tr>
+                            <th />
                             <th>Date</th>
                             <th>Description</th>
                             <th>Amount</th>
@@ -70,6 +100,17 @@ export class UploadedStatement extends React.Component<
                             (transaction, i) => {
                                 return (
                                     <tr key={i}>
+                                        <td>
+                                            <button
+                                                onClick={() => {
+                                                    this.props.removeTransaction(
+                                                        i,
+                                                    );
+                                                }}
+                                            >
+                                                ❌
+                                            </button>
+                                        </td>
                                         <td>{transaction.date}</td>
                                         <td>{transaction.description}</td>
                                         <td>{transaction.amount}</td>
@@ -123,6 +164,43 @@ export class UploadedStatement extends React.Component<
                                 );
                             },
                         )}
+                        <tr>
+                            <td>
+                                <button
+                                    onClick={() => {
+                                        const amount = this.state
+                                            .customTransaction
+                                            .amount as unknown as string;
+                                        this.props.addTransaction({
+                                            date: this.state.customTransaction
+                                                .date,
+                                            description:
+                                                this.state.customTransaction
+                                                    .description,
+                                            amount: parseFloat(amount),
+                                        });
+                                    }}
+                                >
+                                    ➕
+                                </button>
+                            </td>
+                            {makeCustomTransactionInput('date')}
+                            {makeCustomTransactionInput('description')}
+                            {makeCustomTransactionInput('amount')}
+                        </tr>
+                        <tr>
+                            <td colSpan={3}>
+                                <b>Total</b>
+                            </td>
+                            <td>
+                                {this.props.statement.transactions.reduce(
+                                    (total, item) => {
+                                        return total + item.amount;
+                                    },
+                                    0,
+                                )}
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
                 <button
