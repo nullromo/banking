@@ -55,13 +55,13 @@ class App extends React.Component<AppProps, AppState> {
                     categories={this.state.categories}
                     removeCategory={(category) => {
                         this.setState((previousState) => {
-                            return {
-                                categories: previousState.categories.filter(
-                                    (oldCategory) => {
-                                        return category !== oldCategory;
-                                    },
-                                ),
-                            };
+                            const categories = previousState.categories.filter(
+                                (oldCategory) => {
+                                    return category !== oldCategory;
+                                },
+                            );
+                            ServerCalls.saveCategories(categories);
+                            return { categories };
                         });
                     }}
                 />
