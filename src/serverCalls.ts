@@ -42,9 +42,10 @@ export class ServerCalls {
         return axios.post(EndpointNames.SAVE_CACHE, { cache });
     };
 
-    static readonly parseStatement = (file: File) => {
+    static readonly parseStatement = (file: File, isPDF: boolean) => {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('isPDF', isPDF ? 'true' : '');
         return axios.post(EndpointNames.PARSE_STATEMENT, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });

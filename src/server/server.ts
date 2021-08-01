@@ -60,6 +60,7 @@ server.post(EndpointNames.SAVE_CACHE, (request, response) => {
 
 server.post(EndpointNames.PARSE_STATEMENT, async (request, response) => {
     try {
+        const isPDF: boolean = request.body.isPDF;
         if (!request.files) {
             throw new Error('A file must be uploaded.');
         }
@@ -67,10 +68,27 @@ server.post(EndpointNames.PARSE_STATEMENT, async (request, response) => {
         if (Array.isArray(file)) {
             throw new Error('Only one file can be uplaoded per request.');
         }
-        const data = await pdf(file.data);
-        console.log(data.text);
-        console.log('================================');
-        const transactions = parseBankOfAmericaCreditCardStatement(data.text);
+        const transactions = await (async () => {
+            if (isPDF) {
+                const data = await pdf(file.data);
+                console.log(data.text);
+                console.log('================================');
+                return parseBankOfAmericaCreditCardStatement(data.text);
+            } else {
+                return file.data
+                    .toString()
+                    .trim()
+                    .split('\n')
+                    .map((line) => {
+                        const parts = line.split(';');
+                        return {
+                            amount: parseFloat(parts[2].replace(',', '')),
+                            date: parts[0],
+                            description: parts[1],
+                        };
+                    });
+            }
+        })();
         response
             .status(200)
             .send({ transactions, statementDate: new Date(2021, 6) });

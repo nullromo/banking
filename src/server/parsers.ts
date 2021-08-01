@@ -7,6 +7,9 @@ export const parseBankOfAmericaCreditCardStatement = (text: string) => {
     const purchasesText = text
         .split('Purchases and Adjustments')[2]
         .split('TOTAL PURCHASES AND ADJUSTMENTS FOR THIS PERIOD')[0];
+    const feesText = text.split('Fees');
+    console.log(paymentsText);
+    console.log(feesText);
     const transactions: Transaction[] = (paymentsText + purchasesText)
         .replace(/\n/g, '')
         .split(/(\d\d\/\d\d)/)
