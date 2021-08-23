@@ -68,53 +68,6 @@ class App extends React.Component<AppProps, AppState> {
                 <br />
                 <br />
                 <br />
-                <div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Cache</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Object.entries(this.state.cache).map(
-                                ([description, category]) => {
-                                    return (
-                                        <tr key={description}>
-                                            <td>{description}</td>
-                                            <td>{category}</td>
-                                        </tr>
-                                    );
-                                },
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-                <br />
-                <br />
-                <br />
-                <TransactionHistory
-                    deleteTransaction={(transaction) => {
-                        this.setState((previousState) => {
-                            const transactionHistory =
-                                previousState.transactionHistory.filter(
-                                    (oldTransaction) => {
-                                        return !taggedTransactionsAreEqual(
-                                            oldTransaction,
-                                            transaction,
-                                        );
-                                    },
-                                );
-                            ServerCalls.saveTransactionHistory(
-                                transactionHistory,
-                            );
-                            return { transactionHistory };
-                        });
-                    }}
-                    transactionHistory={this.state.transactionHistory}
-                />
-                <br />
-                <br />
-                <br />
                 <StatementUploader
                     onUpload={(uploadedStatements) => {
                         this.setState({ uploadedStatements });
@@ -192,6 +145,53 @@ class App extends React.Component<AppProps, AppState> {
                         />
                     );
                 })}
+                <br />
+                <br />
+                <br />
+                <TransactionHistory
+                    deleteTransaction={(transaction) => {
+                        this.setState((previousState) => {
+                            const transactionHistory =
+                                previousState.transactionHistory.filter(
+                                    (oldTransaction) => {
+                                        return !taggedTransactionsAreEqual(
+                                            oldTransaction,
+                                            transaction,
+                                        );
+                                    },
+                                );
+                            ServerCalls.saveTransactionHistory(
+                                transactionHistory,
+                            );
+                            return { transactionHistory };
+                        });
+                    }}
+                    transactionHistory={this.state.transactionHistory}
+                />
+                <br />
+                <br />
+                <br />
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cache</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(this.state.cache).map(
+                                ([description, category]) => {
+                                    return (
+                                        <tr key={description}>
+                                            <td>{description}</td>
+                                            <td>{category}</td>
+                                        </tr>
+                                    );
+                                },
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </>
         );
     };
