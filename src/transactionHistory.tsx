@@ -74,6 +74,17 @@ export class TransactionHistory extends React.Component<
                             </tr>
                         );
                     })}
+                    <tr>
+                        <td colSpan={3}></td>
+                        <td>
+                            {this.props.transactionHistory.reduce(
+                                (total, transaction) => {
+                                    return total + transaction.amount;
+                                },
+                                0,
+                            )}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         );

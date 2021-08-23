@@ -94,6 +94,23 @@ class App extends React.Component<AppProps, AppState> {
                                     return { uploadedStatements };
                                 });
                             }}
+                            negateAllTransactions={() => {
+                                this.setState((previousState) => {
+                                    const uploadedStatements = rfdc()(
+                                        previousState.uploadedStatements,
+                                    );
+                                    uploadedStatements[i].transactions =
+                                        uploadedStatements[i].transactions.map(
+                                            (transaction) => {
+                                                return {
+                                                    ...transaction,
+                                                    amount: -transaction.amount,
+                                                };
+                                            },
+                                        );
+                                    return { uploadedStatements };
+                                });
+                            }}
                             removeTransaction={(transactionNumber) => {
                                 this.setState((previousState) => {
                                     const uploadedStatements = rfdc()(

@@ -5,6 +5,7 @@ interface UploadedStatementProps {
     addTransaction: (transaction: Transaction) => void;
     cache: Partial<Record<string, string>>;
     categories: string[];
+    negateAllTransactions: () => void;
     removeTransaction: (transactionNumber: number) => void;
     statement: Statement;
     submitTransactions: (transactions: TaggedTransaction[]) => void;
@@ -90,7 +91,17 @@ export class UploadedStatement extends React.Component<
                             <th />
                             <th>Date</th>
                             <th>Description</th>
-                            <th>Amount</th>
+                            <th>
+                                <button
+                                    onClick={() => {
+                                        this.props.negateAllTransactions();
+                                    }}
+                                >
+                                    ➖
+                                </button>
+                                <br />
+                                Amount
+                            </th>
                             <th>Category</th>
                             <th>Notes</th>
                         </tr>
