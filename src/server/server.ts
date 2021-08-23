@@ -27,7 +27,7 @@ server.post(EndpointNames.SAVE_TRANSACTION_HISTORY, (request, response) => {
         request.body.transactionHistory;
     fs.writeFileSync(
         transactionHistoryFilename,
-        JSON.stringify(transactionHistory),
+        JSON.stringify(transactionHistory, null, 4),
     );
     response.status(200).send('ok');
 });
@@ -41,7 +41,7 @@ server.get(EndpointNames.LOAD_CATEGORIES, (_, response) => {
 
 server.post(EndpointNames.SAVE_CATEGORIES, (request, response) => {
     const categories: string[] = request.body.categories;
-    fs.writeFileSync(categoriesFilename, JSON.stringify(categories));
+    fs.writeFileSync(categoriesFilename, JSON.stringify(categories, null, 4));
     response.status(200).send('ok');
 });
 
@@ -54,7 +54,7 @@ server.get(EndpointNames.LOAD_CACHE, (_, response) => {
 
 server.post(EndpointNames.SAVE_CACHE, (request, response) => {
     const cache: Partial<Record<string, string>> = request.body.cache;
-    fs.writeFileSync(cacheFilename, JSON.stringify(cache));
+    fs.writeFileSync(cacheFilename, JSON.stringify(cache, null, 4));
     response.status(200).send('ok');
 });
 
