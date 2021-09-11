@@ -10,6 +10,7 @@ import {
     taggedTransactionsAreEqual,
 } from './types';
 import { UploadedStatement } from './uploadedStatement';
+import { Graph } from './graph';
 
 interface AppProps {}
 
@@ -41,6 +42,22 @@ class App extends React.Component<AppProps, AppState> {
     public readonly render = () => {
         return (
             <>
+                <Graph
+                    canvasHeight={200}
+                    canvasWidth={600}
+                    lines={[
+                        [
+                            { x: 1, y: 2 },
+                            { x: 3, y: 5 },
+                            { x: 7, y: 6 },
+                        ],
+                        [
+                            { x: 2, y: 2 },
+                            { x: 1, y: 5 },
+                            { x: 9, y: 4 },
+                        ],
+                    ]}
+                />
                 <CategoriesTable
                     addCategory={(newCategory) => {
                         this.setState((previousState) => {
