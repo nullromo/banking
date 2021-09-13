@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { MouseEvent } from 'react';
 
-type Point = { x: number; y: number };
+export type Point = { x: number; y: number };
 type Line = Point[];
+
+const moneyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+});
+
+const msToDate = (ms: number) => {
+    const date = new Date(ms);
+    return date.toLocaleDateString();
+};
 
 const Color = Object.freeze({
     white: '#FFFFFF',
@@ -37,6 +47,7 @@ export class Graph extends React.Component<GraphProps, GraphState> {
                 }),
             ];
         }, [] as number[]);
+        console.log(xs);
         this.minX = Math.min(...xs);
         this.maxX = Math.max(...xs);
         const ys = props.lines.reduce((ys, line) => {
@@ -55,6 +66,9 @@ export class Graph extends React.Component<GraphProps, GraphState> {
     private maxX: number;
     private minY: number;
     private maxY: number;
+
+    private mousePosition: Point = { x: 0, y: 0 };
+    private crosshairPosition: Point = { x: 0, y: 0 };
 
     public componentDidMount = () => {
         this.animationID = requestAnimationFrame(this.draw);
@@ -76,6 +90,8 @@ export class Graph extends React.Component<GraphProps, GraphState> {
 
     private g: CanvasRenderingContext2D | null = null;
 
+    private readonly axisPadding = 30;
+
     private readonly draw = () => {
         if (!this.canvas.current) {
             return;
@@ -85,8 +101,7 @@ export class Graph extends React.Component<GraphProps, GraphState> {
             return;
         }
 
-        const axisPadding = 30;
-        const fontSize = axisPadding / 2;
+        const fontSize = this.axisPadding / 2;
 
         // draw background
         g.fillStyle = Color.gray;
@@ -97,35 +112,40 @@ export class Graph extends React.Component<GraphProps, GraphState> {
         g.lineWidth = 2;
         g.beginPath();
         g.moveTo(
-            this.props.canvasWidth - axisPadding,
-            this.props.canvasHeight - axisPadding,
+            this.props.canvasWidth - this.axisPadding,
+            this.props.canvasHeight - this.axisPadding,
         );
-        g.lineTo(axisPadding, this.props.canvasHeight - axisPadding);
-        g.lineTo(axisPadding, axisPadding);
+        g.lineTo(this.axisPadding, this.props.canvasHeight - this.axisPadding);
+        g.lineTo(this.axisPadding, this.axisPadding);
         g.stroke();
 
         // draw axis labels
         g.font = `${fontSize}px consolas`;
-        g.textAlign = 'center';
+        g.textAlign = 'left';
         g.textBaseline = 'middle';
-
         g.fillStyle = Color.black;
         g.fillText(
-            `${this.minX}`,
-            axisPadding,
-            this.props.canvasHeight - axisPadding / 2,
+            `${msToDate(this.minX)}`,
+            this.axisPadding,
+            this.props.canvasHeight - this.axisPadding / 2,
+        );
+        g.textAlign = 'right';
+        g.fillText(
+            `${msToDate(this.maxX)}`,
+            this.props.canvasWidth - this.axisPadding,
+            this.props.canvasHeight - this.axisPadding / 2,
+        );
+        g.textAlign = 'left';
+        g.fillText(
+            `${moneyFormatter.format(this.minY)}`,
+            this.axisPadding / 2,
+            this.props.canvasHeight - this.axisPadding,
         );
         g.fillText(
-            `${this.maxX}`,
-            this.props.canvasWidth - axisPadding,
-            this.props.canvasHeight - axisPadding / 2,
+            `${moneyFormatter.format(this.maxY)}`,
+            this.axisPadding / 2,
+            this.axisPadding,
         );
-        g.fillText(
-            `${this.minY}`,
-            axisPadding / 2,
-            this.props.canvasHeight - axisPadding,
-        );
-        g.fillText(`${this.maxY}`, axisPadding / 2, axisPadding);
 
         // draw data
         this.props.lines.forEach((line) => {
@@ -136,12 +156,15 @@ export class Graph extends React.Component<GraphProps, GraphState> {
                 return;
             }
             g.save();
-            g.translate(axisPadding, this.props.canvasHeight - axisPadding);
+            g.translate(
+                this.axisPadding,
+                this.props.canvasHeight - this.axisPadding,
+            );
             g.scale(
-                (this.props.canvasWidth - 2 * axisPadding) /
+                (this.props.canvasWidth - 2 * this.axisPadding) /
                     (this.maxX - this.minX),
                 -(
-                    (this.props.canvasHeight - 2 * axisPadding) /
+                    (this.props.canvasHeight - 2 * this.axisPadding) /
                     (this.maxY - this.minY)
                 ),
             );
@@ -155,7 +178,85 @@ export class Graph extends React.Component<GraphProps, GraphState> {
         });
         g.restore();
 
+        // draw crosshair
+        g.beginPath();
+        g.moveTo(this.mousePosition.x, 0);
+        g.lineTo(this.mousePosition.x, this.props.canvasHeight);
+        g.stroke();
+        g.beginPath();
+        g.moveTo(0, this.mousePosition.y);
+        g.lineTo(this.props.canvasWidth, this.mousePosition.y);
+        g.stroke();
+        g.textAlign = 'right';
+        g.fillText(
+            `Mouse: (${msToDate(
+                this.crosshairPosition.x,
+            )}, ${moneyFormatter.format(this.crosshairPosition.y)})`,
+            this.props.canvasWidth,
+            20,
+        );
+
+        // draw cursor
+        const cursorSize = 4;
+        g.fillStyle = Color.blue;
+        const cursorValue =
+            (() => {
+                const line = this.props.lines[0];
+                return line.find((point, index) => {
+                    const nextPoint =
+                        line[Math.min(index + 1, line.length - 1)];
+                    return (
+                        point.x <= this.crosshairPosition.x &&
+                        nextPoint.x >= this.crosshairPosition.x
+                    );
+                });
+            })()?.y ?? 0;
+        g.fillRect(
+            this.mousePosition.x - cursorSize,
+            this.props.canvasHeight -
+                this.axisPadding -
+                ((cursorValue - this.minY) / (this.maxY - this.minY)) *
+                    (this.props.canvasHeight - 2 * this.axisPadding) -
+                cursorSize,
+            2 * cursorSize,
+            2 * cursorSize,
+        );
+        g.fillText(
+            moneyFormatter.format(cursorValue),
+            this.props.canvasWidth,
+            40,
+        );
+
         this.animationID = requestAnimationFrame(this.draw);
+    };
+
+    private readonly getMouseCoordinates = (event: MouseEvent) => {
+        if (!this.canvas.current) {
+            return { x: 0, y: 0 };
+        }
+        const canvasBounds = this.canvas.current.getBoundingClientRect();
+        const clickX = Math.floor(event.clientX - canvasBounds.left);
+        const clickY = Math.floor(event.clientY - canvasBounds.top);
+        return { x: clickX, y: clickY };
+    };
+
+    private readonly canvasMouseMoved = (event: MouseEvent) => {
+        const mouseCoordinates = this.getMouseCoordinates(event);
+        this.mousePosition = mouseCoordinates;
+        this.crosshairPosition = {
+            x:
+                ((this.mousePosition.x - this.axisPadding) *
+                    (this.maxX - this.minX)) /
+                    (this.props.canvasWidth - 2 * this.axisPadding) +
+                this.minX,
+            y:
+                ((this.props.canvasHeight -
+                    this.mousePosition.y -
+                    this.axisPadding) *
+                    (this.maxY - this.minY)) /
+                    (this.props.canvasHeight - 2 * this.axisPadding) +
+                this.minY,
+        };
     };
 
     public readonly render = () => {
@@ -169,7 +270,7 @@ export class Graph extends React.Component<GraphProps, GraphState> {
                     //onClick={this.canvasClicked}
                     //onContextMenu={this.canvasRightClicked}
                     //onMouseLeave={this.canvasMouseLeft}
-                    //onMouseMove={this.canvasMouseMoved}
+                    onMouseMove={this.canvasMouseMoved}
                 >
                     Javascript must be enabled to view the graph.
                 </canvas>

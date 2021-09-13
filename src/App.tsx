@@ -10,7 +10,7 @@ import {
     taggedTransactionsAreEqual,
 } from './types';
 import { UploadedStatement } from './uploadedStatement';
-import { Graph } from './graph';
+import { Graph, Point } from './graph';
 
 interface AppProps {}
 
@@ -42,22 +42,31 @@ class App extends React.Component<AppProps, AppState> {
     public readonly render = () => {
         return (
             <>
-                <Graph
-                    canvasHeight={200}
-                    canvasWidth={600}
-                    lines={[
-                        [
-                            { x: 1, y: 2 },
-                            { x: 3, y: 5 },
-                            { x: 7, y: 6 },
-                        ],
-                        [
-                            { x: 2, y: 2 },
-                            { x: 1, y: 5 },
-                            { x: 9, y: 4 },
-                        ],
-                    ]}
-                />
+                {this.state.transactionHistory.length === 0 ? null : (
+                    <Graph
+                        canvasHeight={400}
+                        canvasWidth={1200}
+                        lines={[
+                            this.state.transactionHistory
+                                .sort((a, b) => {
+                                    return (
+                                        Date.parse(a.date) - Date.parse(b.date)
+                                    );
+                                })
+                                .reduce((line, transaction, index) => {
+                                    return [
+                                        ...line,
+                                        {
+                                            x: Date.parse(transaction.date),
+                                            y:
+                                                transaction.amount +
+                                                (line[index - 1]?.y || 0),
+                                        },
+                                    ];
+                                }, [] as Point[]),
+                        ]}
+                    />
+                )}
                 <CategoriesTable
                     addCategory={(newCategory) => {
                         this.setState((previousState) => {
